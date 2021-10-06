@@ -1,4 +1,4 @@
-#include "CrowdingEffect2.h"
+#include "CrowdingEffectNoSize.h"
 #include "ParsingFunctions.h"
 #include "Tree.h"
 #include "TreePopulation.h"
@@ -8,38 +8,32 @@
 //////////////////////////////////////////////////////////////////////////////
 // Constructor
 //////////////////////////////////////////////////////////////////////////////
-clCrowdingEffectTwo::clCrowdingEffectTwo() {
+clCrowdingEffectNoSize::clCrowdingEffectNoSize() {
   mp_fC = NULL;
   mp_fD = NULL;
-  mp_fGamma = NULL;
-  m_bRequiresTargetDiam = true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // Destructor
 //////////////////////////////////////////////////////////////////////////////
-clCrowdingEffectTwo::~clCrowdingEffectTwo() {
+clCrowdingEffectNoSize::~clCrowdingEffectNoSize() {
   delete[] mp_fC;
   delete[] mp_fD;
-  delete[] mp_fGamma;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // CalculateCrowdingEffect
 //////////////////////////////////////////////////////////////////////////////
-float clCrowdingEffectTwo::CalculateCrowdingEffect(clTree *p_oTree, const float &fDiam, const clNCITermBase::ncivals nci, const int &iSpecies) {
-  float fCrowdingEffect, fTerm1, fTerm2;
+float clCrowdingEffectNoSize::CalculateCrowdingEffect(clTree *p_oTree, const float &fDiam, const clNCITermBase::ncivals nci, const int &iSpecies) {
+  float fCrowdingEffect, fNCI;
   if (!m_b2ValNCI) {
-    fTerm1 = fDiam;
-    fTerm2 = nci.fNCI1;
+    fNCI = nci.fNCI1;
   } else {
-    fTerm1 = nci.fNCI1;
-    fTerm2 = nci.fNCI2;
+    fNCI = nci.fNCI2;
   }
   //Avoid a domain error - if NCI is 0, return 1
-  if ( fTerm2 > 0 ) {
-    fCrowdingEffect = exp(-mp_fC[iSpecies] *
-         pow(pow(fTerm1, mp_fGamma[iSpecies]) * fTerm2, mp_fD[iSpecies]));
+  if ( fNCI > 0 ) {
+    fCrowdingEffect = exp( -mp_fC[iSpecies] * pow( fNCI, mp_fD[iSpecies]));
     if ( fCrowdingEffect < 0 ) fCrowdingEffect = 0;
     if ( fCrowdingEffect > 1 ) fCrowdingEffect = 1;
     return fCrowdingEffect;
@@ -50,7 +44,7 @@ float clCrowdingEffectTwo::CalculateCrowdingEffect(clTree *p_oTree, const float 
 //////////////////////////////////////////////////////////////////////////////
 // DoSetup
 //////////////////////////////////////////////////////////////////////////////
-void clCrowdingEffectTwo::DoSetup(clTreePopulation *p_oPop, clBehaviorBase *p_oNCI, clNCIBehaviorBase *p_oNCIBase, xercesc::DOMElement *p_oElement) {
+void clCrowdingEffectNoSize::DoSetup(clTreePopulation *p_oPop, clBehaviorBase *p_oNCI, clNCIBehaviorBase *p_oNCIBase, xercesc::DOMElement *p_oElement) {
   floatVal * p_fTempValues; //for getting species-specific values
   int iNumBehaviorSpecies = p_oNCI->GetNumBehaviorSpecies(),
       iNumTotalSpecies = p_oPop->GetNumberOfSpecies(), i;
@@ -61,19 +55,11 @@ void clCrowdingEffectTwo::DoSetup(clTreePopulation *p_oPop, clBehaviorBase *p_oN
 
   mp_fC = new float[iNumTotalSpecies];
   mp_fD = new float[iNumTotalSpecies];
-  mp_fGamma = new float[iNumTotalSpecies];
 
   //Set up our floatVal array that will extract values only for the species
   //assigned to this behavior
   p_fTempValues = new floatVal[iNumBehaviorSpecies];
   for ( i = 0; i < iNumBehaviorSpecies; i++ ) p_fTempValues[i].code = p_oNCI->GetBehaviorSpecies(i);
-
-  //Size sensitivity to NCI parameter (gamma)
-  FillSpeciesSpecificValue( p_oElement, "nciCrowdingGamma", "ncgVal", p_fTempValues,
-      iNumBehaviorSpecies, p_oPop, true );
-  //Transfer to the appropriate array buckets
-  for ( i = 0; i < iNumBehaviorSpecies; i++ )
-    mp_fGamma[p_fTempValues[i].code] = p_fTempValues[i].val;
 
   //Crowding Slope (C)
   FillSpeciesSpecificValue( p_oElement, "nciCrowdingC", "nccVal", p_fTempValues,

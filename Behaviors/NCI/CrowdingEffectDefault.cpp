@@ -1,4 +1,4 @@
-#include "CrowdingEffect2.h"
+#include "CrowdingEffectDefault.h"
 #include "ParsingFunctions.h"
 #include "Tree.h"
 #include "TreePopulation.h"
@@ -8,17 +8,17 @@
 //////////////////////////////////////////////////////////////////////////////
 // Constructor
 //////////////////////////////////////////////////////////////////////////////
-clCrowdingEffectTwo::clCrowdingEffectTwo() {
+clCrowdingEffectDefault::clCrowdingEffectDefault() {
   mp_fC = NULL;
   mp_fD = NULL;
   mp_fGamma = NULL;
-  m_bRequiresTargetDiam = true;
+
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // Destructor
 //////////////////////////////////////////////////////////////////////////////
-clCrowdingEffectTwo::~clCrowdingEffectTwo() {
+clCrowdingEffectDefault::~clCrowdingEffectDefault() {
   delete[] mp_fC;
   delete[] mp_fD;
   delete[] mp_fGamma;
@@ -27,7 +27,7 @@ clCrowdingEffectTwo::~clCrowdingEffectTwo() {
 //////////////////////////////////////////////////////////////////////////////
 // CalculateCrowdingEffect
 //////////////////////////////////////////////////////////////////////////////
-float clCrowdingEffectTwo::CalculateCrowdingEffect(clTree *p_oTree, const float &fDiam, const clNCITermBase::ncivals nci, const int &iSpecies) {
+float clCrowdingEffectDefault::CalculateCrowdingEffect(clTree *p_oTree, const float &fDiam, const clNCITermBase::ncivals nci, const int &iSpecies) {
   float fCrowdingEffect, fTerm1, fTerm2;
   if (!m_b2ValNCI) {
     fTerm1 = fDiam;
@@ -38,8 +38,8 @@ float clCrowdingEffectTwo::CalculateCrowdingEffect(clTree *p_oTree, const float 
   }
   //Avoid a domain error - if NCI is 0, return 1
   if ( fTerm2 > 0 ) {
-    fCrowdingEffect = exp(-mp_fC[iSpecies] *
-         pow(pow(fTerm1, mp_fGamma[iSpecies]) * fTerm2, mp_fD[iSpecies]));
+    fCrowdingEffect = exp( -mp_fC[iSpecies] * pow( fTerm1, mp_fGamma[iSpecies] )
+        * pow( fTerm2, mp_fD[iSpecies]));
     if ( fCrowdingEffect < 0 ) fCrowdingEffect = 0;
     if ( fCrowdingEffect > 1 ) fCrowdingEffect = 1;
     return fCrowdingEffect;
@@ -50,7 +50,7 @@ float clCrowdingEffectTwo::CalculateCrowdingEffect(clTree *p_oTree, const float 
 //////////////////////////////////////////////////////////////////////////////
 // DoSetup
 //////////////////////////////////////////////////////////////////////////////
-void clCrowdingEffectTwo::DoSetup(clTreePopulation *p_oPop, clBehaviorBase *p_oNCI, clNCIBehaviorBase *p_oNCIBase, xercesc::DOMElement *p_oElement) {
+void clCrowdingEffectDefault::DoSetup(clTreePopulation *p_oPop, clBehaviorBase *p_oNCI, clNCIBehaviorBase *p_oNCIBase, xercesc::DOMElement *p_oElement) {
   floatVal * p_fTempValues; //for getting species-specific values
   int iNumBehaviorSpecies = p_oNCI->GetNumBehaviorSpecies(),
       iNumTotalSpecies = p_oPop->GetNumberOfSpecies(), i;
